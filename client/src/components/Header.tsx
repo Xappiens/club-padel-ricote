@@ -64,10 +64,8 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) =>
               item.isRoute ? (
-                <Link key={item.href} href={item.href}>
-                  <a className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors rounded-md hover:bg-muted">
-                    {item.label}
-                  </a>
+                <Link key={item.href} href={item.href} className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors rounded-md hover:bg-muted">
+                  {item.label}
                 </Link>
               ) : (
                 <a
@@ -126,13 +124,13 @@ export default function Header() {
             <div className="flex flex-col space-y-2">
               {navItems.map((item) =>
                 item.isRoute ? (
-                  <Link key={item.href} href={item.href}>
-                    <a
-                      onClick={() => setIsMenuOpen(false)}
-                      className="px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors block"
-                    >
-                      {item.label}
-                    </a>
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors block"
+                  >
+                    {item.label}
                   </Link>
                 ) : (
                   <a

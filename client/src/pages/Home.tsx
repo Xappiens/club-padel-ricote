@@ -25,8 +25,19 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría la lógica de envío del formulario
-    alert("¡Gracias por tu mensaje! Te contactaremos pronto.");
+    
+    // Construir mensaje para WhatsApp
+    const mensaje = `*Nuevo contacto desde la web*%0A%0A` +
+      `*Nombre:* ${formData.nombre}%0A` +
+      `*Email:* ${formData.email}%0A` +
+      `*Teléfono:* ${formData.telefono}%0A%0A` +
+      `*Mensaje:*%0A${formData.mensaje}`;
+    
+    // Abrir WhatsApp con el mensaje
+    const whatsappUrl = `https://wa.me/34671498983?text=${mensaje}`;
+    window.open(whatsappUrl, '_blank');
+    
+    // Limpiar formulario
     setFormData({ nombre: "", email: "", telefono: "", mensaje: "" });
   };
 

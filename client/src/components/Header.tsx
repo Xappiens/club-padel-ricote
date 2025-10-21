@@ -1,26 +1,36 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { getLoginUrl } from "@/const";
+import { trpc } from "@/lib/trpc";
+import { LogOut, Menu, User, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const logout = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      window.location.href = "/";
+    },
+  });
 
   const navItems = [
-    { href: "#inicio", label: "Inicio" },
-    { href: "#instalaciones", label: "Instalaciones" },
-    { href: "#servicios", label: "Servicios" },
-    { href: "#tarifas", label: "Tarifas" },
-    { href: "#galeria", label: "Galería" },
-    { href: "#contacto", label: "Contacto" },
+    { href: "/", label: "Inicio", isRoute: true },
+    { href: "/reservas", label: "Reservar", isRoute: true },
+    ...(isAuthenticated ? [{ href: "/mis-reservas", label: "Mis Reservas", isRoute: true }] : []),
+    { href: "#instalaciones", label: "Instalaciones", isRoute: false },
+    { href: "#contacto", label: "Contacto", isRoute: false },
   ];
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMenuOpen(false);
+    if (href.startsWith("#")) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        setIsMenuOpen(false);
+      }
     }
   };
 
@@ -52,29 +62,52 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection(item.href);
-                }}
-                className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors rounded-md hover:bg-muted"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.isRoute ? (
+                <Link key={item.href} href={item.href}>
+                  <a className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors rounded-md hover:bg-muted">
+                    {item.label}
+                  </a>
+                </Link>
+              ) : (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(item.href);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors rounded-md hover:bg-muted"
+                >
+                  {item.label}
+                </a>
+              )
+            )}
           </div>
 
-          {/* CTA Button Desktop */}
-          <div className="hidden md:block">
-            <Button
-              onClick={() => scrollToSection("#contacto")}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
-              Reservar Pista
-            </Button>
+          {/* Auth Desktop */}
+          <div className="hidden md:flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-2 px-3 py-2 text-sm">
+                  <User className="w-4 h-4" />
+                  <span>{user?.name || "Usuario"}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => logout.mutate()}
+                  disabled={logout.isPending}
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Salir
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => (window.location.href = getLoginUrl())}>
+                Iniciar Sesión
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -91,26 +124,54 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 animate-fade-in">
             <div className="flex flex-col space-y-2">
-              {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(item.href);
-                  }}
-                  className="px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
-                >
-                  {item.label}
-                </a>
-              ))}
-              <div className="pt-2">
-                <Button
-                  onClick={() => scrollToSection("#contacto")}
-                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-                >
-                  Reservar Pista
-                </Button>
+              {navItems.map((item) =>
+                item.isRoute ? (
+                  <Link key={item.href} href={item.href}>
+                    <a
+                      onClick={() => setIsMenuOpen(false)}
+                      className="px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors block"
+                    >
+                      {item.label}
+                    </a>
+                  </Link>
+                ) : (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(item.href);
+                    }}
+                    className="px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
+              <div className="pt-2 border-t border-border">
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-4 py-2 text-sm text-muted-foreground">
+                      {user?.name || "Usuario"}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => logout.mutate()}
+                      disabled={logout.isPending}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Cerrar Sesión
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    className="w-full"
+                    onClick={() => (window.location.href = getLoginUrl())}
+                  >
+                    Iniciar Sesión
+                  </Button>
+                )}
               </div>
             </div>
           </div>

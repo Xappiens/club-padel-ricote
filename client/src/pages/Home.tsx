@@ -1,3 +1,4 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Footer from "@/components/Footer";
@@ -16,6 +17,10 @@ import {
 import { useState } from "react";
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
@@ -75,7 +80,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => scrollToSection("#contacto")}
+              onClick={() => window.location.href = "/reservas"}
               className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6"
             >
               Reservar Pista
